@@ -4,6 +4,8 @@
 Begriffe, zu denen ich eine Erklärung haben muss:
 - referential transparency
 - tail recursion und @annotation.tailrec(siehe seite 20 im Buch)
+	- tail recursion ist wenn der letzte aufruf die methode/fkt selbst ist
+	das funktioniert oft durch einen accumulator
 - pattern matching
 - partial application/currying
 - case: Warum case benutzen? case classes kann man dann pattern matchen, bekommen ein companion object, brauchen kein "val" oder "var" mehr in der parameterliste. außerdem bekommen case classes und case objects eine schönere toString methode (und equals + hashcode)
