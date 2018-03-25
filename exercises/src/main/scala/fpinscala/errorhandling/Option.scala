@@ -143,6 +143,18 @@ object Option {
   def sequence_1[A](a: List[Option[A]]): Option[List[A]] =
     a.foldRight[Option[List[A]]](Some(Nil))((x, y) => map2(x, y)(_ :: _))
 
+  def sequence_lecture[A](as: List[Option[A]]): Option[List[A]] =
+  as match {
+    case Nil => Some(Nil)
+    case h::t => for {
+      hh <- h
+      tt <- sequence(t)
+    } yield (hh :: tt)
+  }
+
+  def traverse_lecture[A, B](l: List[A])(f: A => Option[B]): Option[List[B]] =
+    sequence(l.map(f))
+
   //  4.5
   /*  Nimm den head, apply f und kombiniere die Option(h) durch map2
       mit der rekursiv aufgebauten liste (map2 wird mit Cons als funktion aufgerufen)
@@ -165,11 +177,10 @@ object Option {
   // Sequence via traverse ist einfach nur traverse mit der identitätsfunktion
   def sequenceViaTraverse[A](a: List[Option[A]]): Option[List[A]] =
     traverse(a)(x => x)
-}
 
-object Main {
   def main(args: Array[String]): Unit = {
-    val test = Some(2)
-    println(test.filter(_ < 3))
+    val test = Some[Int](4)
+    print(test.getOrElse("asd"))
+
   }
 }

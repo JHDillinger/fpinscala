@@ -50,18 +50,46 @@ sealed trait Stream[+A] {
     case _ => this
   }
 
-// 5.3
+  // 5.3
   def takeWhile(p: A => Boolean): Stream[A] = this match {
-    case Cons(h,t) if p(h()) => cons(h(), t().takeWhile(p))
+    case Cons(h, t) if p(h()) => cons(h(), t().takeWhile(p))
     case _ => empty
   }
 
-  def forAll(p: A => Boolean): Boolean = ???
+  //  5.4
+  def forAll(p: A => Boolean): Boolean =
+    foldRight(true)((a, b) => p(a) && b)
 
-  def headOption: Option[A] = ???
+  //  5.5
+  def takeWhileFR(p: A => Boolean): Stream[A] =
+    foldRight(empty[A])((h, t) => {
+      if (p(h)) cons(h, t)
+      else empty
+    })
+
+  //  5.6 (hard)
+  def headOption: Option[A] =
+    foldRight(None: Option[A])((h, _) => Some(h))
 
   // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
   // writing your own function signatures.
+
+  def map[B](f: A => B): Stream[B] =
+    foldRight(empty[B])((h, t) => cons(f(h), t))
+
+  def filter(p: A => Boolean): Stream[A] =
+    foldRight(empty[A])((h, t) => if (p(h)) cons(h, t) else t)
+
+  //  [B>:A] sagt: B ist ein supertype von A
+  //  Das muss sein, weil Stream[+A]
+  //  das +A macht das ganze covariant
+  //  Hier: Elemente vom Typ B dürfen an einen Stream von Typ A
+  //  appended werden, aber das Resultat ist dann ein Stream[B]
+  def append[B >: A](b: => Stream[B]): Stream[B] =
+    foldRight(b)(cons(_, _))
+
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    foldRight(empty[B])((h, t) => f(h).append(t))
 
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
@@ -85,17 +113,38 @@ object Stream {
 
   val ones: Stream[Int] = Stream.cons(1, ones)
 
-  def from(n: Int): Stream[Int] = ???
+  //  5.8
+  def constant[A](a: A): Stream[A] = {
+    //    Variante a)
+    //    cons(a, constant(a))
+    //    effizienter:
+    lazy val tail: Stream[A] = Cons(() => a, () => tail)
+    tail
+  }
+
+  // 5.9
+  def from(n: Int): Stream[Int] = {
+    cons(n, from(n + 1))
+  }
+
+  //  5.10
+  val fibs = {
+    def go(f0: Int, f1: Int): Stream[Int] =
+      cons(f0, go(f1, f0 + f1))
+
+    go(0, 1)
+  }
+
 
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = ???
-}
 
-object Main {
+
   def main(args: Array[String]): Unit = {
     val test = Stream(1, 2, 3, 3, 4)
-    println(test.drop(2).toList)
-    println(test.take(2).toList)
-    println(test.takeWhile(_<3).toList)
-
+    //    println(test.drop(2).toList)
+    //    println(test.take(2).toList)
+    //    println(test.takeWhile(_ < 3).toList)
+    val test2 = Stream("test")
+    println(test2.append(test).toList)
   }
 }

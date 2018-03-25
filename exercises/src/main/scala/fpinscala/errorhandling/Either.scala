@@ -53,6 +53,18 @@ object Either {
   def sequence[E,A](es: List[Either[E,A]]): Either[E,List[A]] =
     traverse(es)(x => x)
 
+  def sequence_lecture[E,A](es: List[Either[E,A]]):Either[E,List[A]] =
+    es match {
+      case Nil => Right(Nil)
+      case h::t => for {
+        hh <- h
+        tt <- sequence_lecture(t)
+      } yield hh::tt
+    }
+
+  def traverse_lecture[E,A,B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]] =
+    sequence_lecture(es.map(f))
+
   def mean(xs: IndexedSeq[Double]): Either[String, Double] = 
     if (xs.isEmpty) 
       Left("mean of empty list!")
@@ -66,5 +78,22 @@ object Either {
   def Try[A](a: => A): Either[Exception, A] =
     try Right(a)
     catch { case e: Exception => Left(e) }
+
+
+  val l = List("1", "2", "2")
+  val parsedS = sequence_lecture(l.map(s => Try(s.toInt)))
+  val parsedS2 = sequence(l.map(s => Try(s.toInt)))
+
+  val parsedT = traverse_lecture(l)(s => Try(s.toInt))
+  val parsedT2 = traverse(l)(s => Try(s.toInt))
+
+
+  def main(args: Array[String]): Unit = {
+    println(parsedS)
+    println(parsedS2)
+    println(parsedT)
+    println(parsedT2)
+
+  }
 
 }
