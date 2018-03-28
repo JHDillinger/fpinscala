@@ -91,7 +91,75 @@ sealed trait Stream[+A] {
   def flatMap[B](f: A => Stream[B]): Stream[B] =
     foldRight(empty[B])((h, t) => f(h).append(t))
 
-  def startsWith[B](s: Stream[B]): Boolean = ???
+  //  5.13
+  //  Lohnt sich die scheiße hier überhaupt?
+  //  das ist doch alles soooo verbose...
+  def mapViaUnfold[B](f: A => B): Stream[B] =
+    unfold(this) {
+      case Cons(h, t) => Some((f(h()), t()))
+      case _ => None
+    }
+
+  def takeViaUnfold(n: Int): Stream[A] =
+    unfold((this, n)) {
+      case (Cons(h, t), 1) => Some(h(), (empty, 0))
+      case (Cons(h, t), n) if n > 1 => Some((h(), (t(), n - 1)))
+      case _ => None
+    }
+
+  def takeWhileViaUnfold(p: A => Boolean): Stream[A] =
+    unfold(this) {
+      case Cons(h, t) if p(h()) => Some(h(), t())
+      case _ => None
+    }
+
+  def zipWith[B, C](s2: Stream[B])(f: (A, B) => C): Stream[C] =
+    unfold((this, s2)) {
+      case (Cons(h1, t1), Cons(h2, t2)) =>
+        Some((f(h1(), h2()), (t1(), t2())))
+      case _ => None
+    }
+
+  //  zip wenn zwei streams zu einem stream an tuples werden soll
+  def zip[B](s2: Stream[B]): Stream[(A, B)] =
+    zipWith(s2)((_, _))
+
+
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] =
+    zipWithAll(s2)((_, _))
+
+  //  Diese "->" Pfeile sind wohl nur syntactic sugar für Tuples?
+  //  also (a -> b) = (a,b)
+  //   nicht sicher, ob die das ganze lesbarer machen...
+  //  ist eh schon furchtbar
+  def zipWithAll[B, C](s2: Stream[B])(f: (Option[A], Option[B]) => C): Stream[C] =
+    Stream.unfold((this, s2)) {
+      case (Empty, Empty) => None
+      case (Cons(h, t), Empty) =>
+        Some(f(Some(h()), Option.empty[B]) -> (t(), empty[B]))
+      case (Empty, Cons(h, t)) =>
+        Some(f(Option.empty[A], Some(h())) -> (empty[A] -> t()))
+      case (Cons(h1, t1), Cons(h2, t2)) =>
+        Some(f(Some(h1()), Some(h2())) -> (t1() -> t2()))
+    }
+
+  //  5.14 Hard
+  def startsWith[A](s: Stream[A]): Boolean =
+    zipAll(s).takeWhile(_._2.isDefined) forAll {
+      case (h, h2) => h == h2
+    }
+
+  //  5.15
+  //  geht das nicht auch anders?
+  //  mit pattern matching auf Cons(h,t) => Some(Cons(h,t), t())
+  def tails: Stream[Stream[A]] =
+    unfold(this) {
+      case Empty => None
+      case s => Some((s, s drop 1))
+    } append Stream(empty)
+
+//  5.16
+
 }
 
 case object Empty extends Stream[Nothing]
@@ -135,16 +203,39 @@ object Stream {
     go(0, 1)
   }
 
+  // 5.11
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = {
+    f(z) match {
+      case Some((a, s)) => cons(a, unfold(s)(f))
+      case None => Empty
+    }
+  }
 
-  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = ???
+  //  5.12
+  //  eigentlich müsste man p => p match{ case } schreiben
+  //  das kann aber abgekürzt werden, "p" braucht man ja sonst nirgends
+  val fibsViaUnfold =
+  unfold((0, 1)) {
+    case (f0, f1) => Some((f0, (f1, f0 + f1)))
+  }
 
+  //  warum ist die verwendung von "n" im zweiten argument von unfold
+  //  kein "suspicious shadowing"?
+  def fromViaUnfold(n: Int): Stream[Int] =
+    unfold(n)(n => Some((n, n + 1)))
+
+  def constantViaUnfold[A](a: A): Stream[A] =
+    unfold(a)(_ => Some((a, a)))
+
+  val onesViaUnfold = constantViaUnfold(1)
+  //  oder:
+  //  val onesViaUnfold = unfold(1)(_ => Some((1,1)))
 
   def main(args: Array[String]): Unit = {
     val test = Stream(1, 2, 3, 3, 4)
-    //    println(test.drop(2).toList)
-    //    println(test.take(2).toList)
-    //    println(test.takeWhile(_ < 3).toList)
-    val test2 = Stream("test")
-    println(test2.append(test).toList)
+
+    println(test.tails.toList)
+    test.tails
+
   }
 }
