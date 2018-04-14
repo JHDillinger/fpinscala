@@ -43,25 +43,27 @@ object List { // `List` companion object. Contains functions for creating and wo
       case Cons(h, t) => f(h, foldRight(t, z)(f))
     }
 
-/*  def sum2(ns: List[Int]):List[Int] =
-    foldRight(ns, 0)((x, y) => x + y)
+  /*  def sum2(ns: List[Int]):List[Int] =
+      foldRight(ns, 0)((x, y) => x + y)
 
-  def product2(ns: List[Double]):List[Double] =
-    foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar*/
+    def product2(ns: List[Double]):List[Double] =
+      foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar*/
 
-
+  //3.2
   def tail[A](l: List[A]): List[A] =
     l match {
       case Nil => sys.error("tail of empty list")
       case Cons(_, xs) => xs
     }
 
+  //  3.3
   def setHead[A](l: List[A], h: A): List[A] =
     l match {
       case Nil => sys.error("empty list")
       case Cons(_, xs) => Cons(h, xs)
     }
 
+  //  3.4
   def drop[A](l: List[A], n: Int): List[A] =
     if (n <= 0) l
     else
@@ -71,12 +73,14 @@ object List { // `List` companion object. Contains functions for creating and wo
 
       }
 
+  //  3.5
   def dropWhile[A](l: List[A], f: A => Boolean): List[A] =
     l match {
       case Cons(x, xs) if f(x) => dropWhile(xs, f)
       case _ => l
     }
 
+  //  3.6
   def init[A](l: List[A]): List[A] =
     l match {
       case Nil => sys.error("empty list")
@@ -84,6 +88,7 @@ object List { // `List` companion object. Contains functions for creating and wo
       case Cons(x, xs) => Cons(x, init(xs))
     }
 
+  //  3.9
   def length[A](l: List[A]): Int =
     foldRight(l, 0)((_, acc) => 1 + acc)
 
@@ -95,18 +100,25 @@ object List { // `List` companion object. Contains functions for creating and wo
       case Cons(h, t) => foldLeft(t, f(z, h))(f)
     }
 
+  // 3.11
+  def sum3(l: List[Int]) = foldLeft(l, 0)(_ + _)
+
+  def product3(l: List[Double]) = foldLeft(l, 1.0)(_ * _)
+
+  def length2[A](l: List[A]): Int = foldLeft(l, 0)((acc, h) => acc + 1)
+
   //3.12
   def reverse[A](l: List[A]): List[A] =
     foldLeft(l, List[A]())((x, y) => Cons(y, x))
 
   //  3.14
   //   Das war nicht gefragt, man sollte eine ganze liste appenden
-  def appendItem[A](l: List[A], item: A):List[A] =
+  def appendItem[A](l: List[A], item: A): List[A] =
   //    foldRight(l, Cons(item,Nil))((x,y) => Cons(x,y))
     foldRight(l, Cons(item, Nil))(Cons(_, _))
 
   //  für liste:
-  def appendViaFoldRight[A](l: List[A], r: List[A]):List[A] =
+  def appendViaFoldRight[A](l: List[A], r: List[A]): List[A] =
     foldRight(l, r)(Cons(_, _))
 
   //  3.15 concatenates a list of list into single list
@@ -151,7 +163,8 @@ object List { // `List` companion object. Contains functions for creating and wo
     concat(map(l)(f))
 
   //  mein approach war zuerst, das direkt mit foldRight zu implementieren
-  //    foldRight(l, Nil:List[B])((h,t) => append(f(h),t))
+  def flatMapViaFR[A, B](l: List[A])(f: A => List[B]): List[B] =
+    foldRight(l, Nil: List[B])((h, t) => append(f(h), t))
 
   // 3.21
   //  def flatMapFilter
@@ -181,8 +194,15 @@ object List { // `List` companion object. Contains functions for creating and wo
 
 }
 
-object Main{
+object Main {
   def main(args: Array[String]): Unit = {
-    print("test")
+    val test = List.flatMapViaFR(List(1, 2, 3))(i => List(i, i * 10)) == List(1, 10, 2, 20, 3, 30)
+
+    val test2 = List.foldLeft(Cons(1, Cons(2, Cons(3, Nil))), 0)((x, y) => x + y)
+    val test3 = List.foldRight(Cons(1, Cons(2, Cons(3, Nil))), 0)((x, y) => x + y)
+
+
+    println(test2)
+    println(test3)
   }
 }
