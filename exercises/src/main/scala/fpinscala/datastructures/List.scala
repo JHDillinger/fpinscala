@@ -43,11 +43,11 @@ object List { // `List` companion object. Contains functions for creating and wo
       case Cons(h, t) => f(h, foldRight(t, z)(f))
     }
 
-/*  def sum2(ns: List[Int]):List[Int] =
-    foldRight(ns, 0)((x, y) => x + y)
+  /*  def sum2(ns: List[Int]):List[Int] =
+      foldRight(ns, 0)((x, y) => x + y)
 
-  def product2(ns: List[Double]):List[Double] =
-    foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar*/
+    def product2(ns: List[Double]):List[Double] =
+      foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar*/
 
 
   def tail[A](l: List[A]): List[A] =
@@ -101,12 +101,12 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   //  3.14
   //   Das war nicht gefragt, man sollte eine ganze liste appenden
-  def appendItem[A](l: List[A], item: A):List[A] =
+  def appendItem[A](l: List[A], item: A): List[A] =
   //    foldRight(l, Cons(item,Nil))((x,y) => Cons(x,y))
     foldRight(l, Cons(item, Nil))(Cons(_, _))
 
   //  für liste:
-  def appendViaFoldRight[A](l: List[A], r: List[A]):List[A] =
+  def appendViaFoldRight[A](l: List[A], r: List[A]): List[A] =
     foldRight(l, r)(Cons(_, _))
 
   //  3.15 concatenates a list of list into single list
@@ -151,7 +151,8 @@ object List { // `List` companion object. Contains functions for creating and wo
     concat(map(l)(f))
 
   //  mein approach war zuerst, das direkt mit foldRight zu implementieren
-  //    foldRight(l, Nil:List[B])((h,t) => append(f(h),t))
+  def flatMapViaFoldRight[A, B](l: List[A])(f: A => List[B]): List[B] =
+    foldRight(l, Nil: List[B])((h, t) => append(f(h), t))
 
   // 3.21
   //  def flatMapFilter
@@ -181,8 +182,13 @@ object List { // `List` companion object. Contains functions for creating and wo
 
 }
 
-object Main{
+object Main {
   def main(args: Array[String]): Unit = {
-    print("test")
+
+    val buf = new collection.mutable.ListBuffer[Int]
+    buf += 1
+    val t = List(buf.toList:_*)
+
+    print(t)
   }
 }

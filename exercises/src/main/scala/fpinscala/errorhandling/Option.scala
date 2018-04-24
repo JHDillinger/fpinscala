@@ -37,6 +37,12 @@ sealed trait Option[+A] {
       //  vs:
       //  flatMap(a => if (f(a)) Some(a) else None)
     }
+
+  def map2[B, C](b:Option[B])(f: (A,B) => C) :Option[C] =
+    for{
+      a <- this
+      bb <- b
+    } yield f(a,bb)
 }
 
 case class Some[+A](get: A) extends Option[A]
@@ -70,7 +76,7 @@ object Option {
     else Some(xs.sum / xs.length)
 
   //  4.2
-  def variance(xs: Seq[Double]): Option[Double] = {
+  def variance(xs: List[Double]): Option[Double] = {
     /*        mean(xs) gibt entweder None zurück oder den mean der Sequence
             Über das ergebnis wird geflatmapt. d.h. falls None -> None
             sonst: gib das m weiter
@@ -143,13 +149,14 @@ object Option {
   def sequence_1[A](a: List[Option[A]]): Option[List[A]] =
     a.foldRight[Option[List[A]]](Some(Nil))((x, y) => map2(x, y)(_ :: _))
 
+//  Das ist das gleiche wie oben, nur dass es mit den for-comprehensions ist
   def sequence_lecture[A](as: List[Option[A]]): Option[List[A]] =
   as match {
     case Nil => Some(Nil)
     case h::t => for {
       hh <- h
-      tt <- sequence(t)
-    } yield (hh :: tt)
+      tt <- sequence_lecture(t)
+    } yield hh :: tt
   }
 
   def traverse_lecture[A, B](l: List[A])(f: A => Option[B]): Option[List[B]] =
@@ -180,6 +187,9 @@ object Option {
 
   def main(args: Array[String]): Unit = {
     val test = Some[Int](4)
+    val l = List(1.0,2.0,3.0)
+    import fpinscala.datastructures.List
+    val l2 = List(1,2,3)
     print(test.getOrElse("asd"))
 
   }
