@@ -62,16 +62,31 @@ object Monad {
       ma flatMap f
   }
 
+//  11.1
+//  Par und Parser wurden ja garnicht behandelt
   val parMonad: Monad[Par] = ???
 
   def parserMonad[P[+_]](p: Parsers[P]): Monad[P] = ???
 
-  val optionMonad: Monad[Option] = ???
+  val optionMonad: Monad[Option] = new Monad[Option] {
+    override def unit[A](a: => A): Option[A] = Some(a)
 
-  val streamMonad: Monad[Stream] = ???
+    override def flatMap[A, B](ma: Option[A])(f: A => Option[B]): Option[B] = ma.flatMap(f)
+  }
 
-  val listMonad: Monad[List] = ???
+  val streamMonad: Monad[Stream] = new Monad[Stream] {
+    override def unit[A](a: => A): Stream[A] = Stream(a)
 
+    override def flatMap[A, B](ma: Stream[A])(f: A => Stream[B]): Stream[B] = ma.flatMap(f)
+  }
+
+  val listMonad: Monad[List] = new Monad[List] {
+    override def unit[A](a: => A): List[A] = List(a)
+
+    override def flatMap[A, B](ma: List[A])(f: A => List[B]): List[B] = ma.flatMap(f)
+  }
+
+//  11.2
   def stateMonad[S] = ???
 
   val idMonad: Monad[Id] = ???

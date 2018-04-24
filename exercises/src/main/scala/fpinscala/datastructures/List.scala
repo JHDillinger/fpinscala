@@ -45,6 +45,12 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   /*  def sum2(ns: List[Int]):List[Int] =
       foldRight(ns, 0)((x, y) => x + y)
+<<<<<<< HEAD
+=======
+
+    def product2(ns: List[Double]):List[Double] =
+      foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar*/
+>>>>>>> 745162f88122d7223969dd4bbb53a48791c4534f
 
     def product2(ns: List[Double]):List[Double] =
       foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar*/
@@ -163,7 +169,11 @@ object List { // `List` companion object. Contains functions for creating and wo
     concat(map(l)(f))
 
   //  mein approach war zuerst, das direkt mit foldRight zu implementieren
+<<<<<<< HEAD
   def flatMapViaFR[A, B](l: List[A])(f: A => List[B]): List[B] =
+=======
+  def flatMapViaFoldRight[A, B](l: List[A])(f: A => List[B]): List[B] =
+>>>>>>> 745162f88122d7223969dd4bbb53a48791c4534f
     foldRight(l, Nil: List[B])((h, t) => append(f(h), t))
 
   // 3.21
@@ -196,6 +206,7 @@ object List { // `List` companion object. Contains functions for creating and wo
 
 object Main {
   def main(args: Array[String]): Unit = {
+<<<<<<< HEAD
     val test = List.flatMapViaFR(List(1, 2, 3))(i => List(i, i * 10)) == List(1, 10, 2, 20, 3, 30)
 
     val test2 = List.foldLeft(Cons(1, Cons(2, Cons(3, Nil))), 0)((x, y) => x + y)
@@ -204,5 +215,13 @@ object Main {
 
     println(test2)
     println(test3)
+=======
+
+    val buf = new collection.mutable.ListBuffer[Int]
+    buf += 1
+    val t = List(buf.toList:_*)
+
+    print(t)
+>>>>>>> 745162f88122d7223969dd4bbb53a48791c4534f
   }
 }
