@@ -38,11 +38,11 @@ sealed trait Option[+A] {
       //  flatMap(a => if (f(a)) Some(a) else None)
     }
 
-  def map2[B, C](b:Option[B])(f: (A,B) => C) :Option[C] =
-    for{
+  def map2[B, C](b: Option[B])(f: (A, B) => C): Option[C] =
+    for {
       a <- this
       bb <- b
-    } yield f(a,bb)
+    } yield f(a, bb)
 }
 
 case class Some[+A](get: A) extends Option[A]
@@ -149,15 +149,15 @@ object Option {
   def sequence_1[A](a: List[Option[A]]): Option[List[A]] =
     a.foldRight[Option[List[A]]](Some(Nil))((x, y) => map2(x, y)(_ :: _))
 
-//  Das ist das gleiche wie oben, nur dass es mit den for-comprehensions ist
+  //  Das ist das gleiche wie oben, nur dass es mit den for-comprehensions ist
   def sequence_lecture[A](as: List[Option[A]]): Option[List[A]] =
-  as match {
-    case Nil => Some(Nil)
-    case h::t => for {
-      hh <- h
-      tt <- sequence_lecture(t)
-    } yield hh :: tt
-  }
+    as match {
+      case Nil => Some(Nil)
+      case h :: t => for {
+        hh <- h
+        tt <- sequence_lecture(t)
+      } yield hh :: tt
+    }
 
   def traverse_lecture[A, B](l: List[A])(f: A => Option[B]): Option[List[B]] =
     sequence(l.map(f))
@@ -186,11 +186,9 @@ object Option {
     traverse(a)(x => x)
 
   def main(args: Array[String]): Unit = {
-    val test = Some[Int](4)
-    val l = List(1.0,2.0,3.0)
-    import fpinscala.datastructures.List
-    val l2 = List(1,2,3)
-    print(test.getOrElse("asd"))
+    val t = List(Some(2), Some(3))
+    val test = sequence_lecture(t)
+    print(test)
 
   }
 }

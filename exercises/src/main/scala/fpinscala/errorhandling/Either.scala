@@ -89,6 +89,10 @@ object Either {
 
 
   def main(args: Array[String]): Unit = {
+
+    val t = List(Right(2), Right(3))
+    val test = sequence_lecture(t)
+    print(test)
     println(parsedS)
     println(parsedS2)
     println(parsedT)

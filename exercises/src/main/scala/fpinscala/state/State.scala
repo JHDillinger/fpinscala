@@ -105,17 +105,11 @@ object RNG {
     fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_ :: _))
 
 
-<<<<<<< HEAD
   //  6.8 (flatMap + nonNegativeLessThan mit flatMap)
   def flatMap[A, B](f: Rand[A])(g: A => Rand[B]): Rand[B] = rng => {
     val (a, r1) = f(rng)
     g(a)(r1) // We pass the new state along
-=======
-  //  6.8
-  def flatMap[A, B](f: Rand[A])(g: A => Rand[B]): Rand[B] = rng => {
-    val (a, r1) = f(rng)
-    g(a)(r1)
->>>>>>> 745162f88122d7223969dd4bbb53a48791c4534f
+    //  6.8
   }
 
   def nonNegativeLessThan(n: Int): Rand[Int] = {
@@ -125,7 +119,6 @@ object RNG {
     }
   }
 
-<<<<<<< HEAD
   //  6.9 map and map2 via flatMap
   def _map[A, B](s: Rand[A])(f: A => B): Rand[B] =
     flatMap(s)(a => unit(f(a)))
@@ -133,13 +126,11 @@ object RNG {
   def _map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
     flatMap(ra)(a => map(rb)(b => f(a, b)))
 
-=======
   //  6.9
   def mapViaFlatMap[A, B](s: Rand[A])(f: A => B): Rand[B] = flatMap(s)(a => unit(f(a)))
 
-//  def map2ViaFlatMap[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
-//    flatMap(ra)(a => map(ra)(b => f(a, b)))
->>>>>>> 745162f88122d7223969dd4bbb53a48791c4534f
+  //  def map2ViaFlatMap[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
+  //    flatMap(ra)(a => map(ra)(b => f(a, b)))
 
   def main(args: Array[String]): Unit = {
     val rng = Simple(42)
@@ -147,13 +138,10 @@ object RNG {
   }
 }
 
-<<<<<<< HEAD
 //Warum muss das hier sein?
 import State._
 
-=======
 // 6.10
->>>>>>> 745162f88122d7223969dd4bbb53a48791c4534f
 case class State[S, +A](run: S => (A, S)) {
   //  6.10 generalize map, map2 and flatMap
   def map[B](f: A => B): State[S, B] =
@@ -223,7 +211,7 @@ object Candy {
 
   def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] =
     for {
-      _ <- sequence(inputs map (modify[Machine] _  compose update))
+      _ <- sequence(inputs map (modify[Machine] _ compose update))
       s <- get
     } yield (s.coins, s.candies)
 
