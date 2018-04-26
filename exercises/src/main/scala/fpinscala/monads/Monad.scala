@@ -48,8 +48,8 @@ trait Monad[M[_]] extends Functor[M] {
       case Nil => unit(Nil)
       case h :: t => {
         flatMap(h)(hh =>
-          flatMap(sequence_flatMap(t))(tt =>
-            unit(hh :: tt)))
+          map(sequence_flatMap(t))(tt =>
+            hh :: tt))
       }
     }
 
