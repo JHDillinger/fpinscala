@@ -43,16 +43,27 @@ sealed trait Stream[+A] {
     case _ => empty
   }
 
-  //  um das ganze tailrecursive machen zu können muss ein final davor
-  @annotation.tailrec
-  final def drop(n: Int): Stream[A] = this match {
-    case Cons(h, t) if n > 0 => t().drop(n - 1)
-    case _ => this
+//  Ohne pattern guard
+  def take2(n: Int): Stream[A] = this match {
+    case Cons(h, t) => {
+      if (n > 0) cons(h(), t().take2(n - 1))
+      else if (n == 1) cons(h(), empty)
+      else empty
+    }
+    //    case Cons(h, _) if n == 1 => cons(h(), empty)
+    case _ => empty
   }
+
+  //  um das ganze tailrecursive machen zu können muss ein final davor
+//  @annotation.tailrec
+//  final def drop(n: Int): Stream[A] = this match {
+//    case Cons(h, t) => if (n > 0) t().drop(n - 1) else this
+//    case _ => this
+//  }
 
   // 5.3
   def takeWhile(p: A => Boolean): Stream[A] = this match {
-    case Cons(h, t) if p(h()) => cons(h(), t().takeWhile(p))
+    case Cons(h, t) => if (p(h())) cons(h(), t().takeWhile(p)) else empty
     case _ => empty
   }
 
@@ -158,7 +169,7 @@ sealed trait Stream[+A] {
       case s => Some((s, s drop 1))
     } append Stream(empty)
 
-//  5.16
+  //  5.16
 
 }
 
@@ -167,6 +178,12 @@ case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
 
 object Stream {
+
+  @annotation.tailrec
+  def drop[A](s:Stream[A])(n: Int): Stream[A] = s match {
+    case Cons(h, t) => if (n > 0) drop(t())(n - 1) else s
+    case _ => s
+  }
   def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
     lazy val head = hd
     lazy val tail = tl
