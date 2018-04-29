@@ -53,14 +53,14 @@ trait Monad[M[_]] extends Functor[M] {
       }
     }
 
-//  def sequence_for[A](lma: List[M[A]]): M[List[A]] =
-//    lma match {
-//      case Nil => unit(Nil)
-//      case h :: t => for {
-//        hh <- h
-//        tt <- sequence(t)
-//      } yield hh :: tt
-//    }
+  //  def sequence_for[A](lma: List[M[A]]): M[List[A]] =
+  //    lma match {
+  //      case Nil => unit(Nil)
+  //      case h :: t => for {
+  //        hh <- h
+  //        tt <- sequence(t)
+  //      } yield hh :: tt
+  //    }
 
   def traverse[A, B](la: List[A])(f: A => M[B]): M[List[B]] =
     la match {
@@ -71,13 +71,68 @@ trait Monad[M[_]] extends Functor[M] {
   def traverseViaSeq[A, B](la: List[A])(f: A => M[B]): M[List[B]] =
     sequence_flatMap(la.map(f))
 
-  def replicateM[A](n: Int, ma: M[A]): M[List[A]] = ???
 
-  def compose[A, B, C](f: A => M[B], g: B => M[C]): A => M[C] = ???
+  //11.4 vllt gute aufgabe
+  def _replicateM[A](n: Int, ma: M[A]): M[List[A]] =
+    if (n <= 0) unit(List[A]()) else map2(ma, _replicateM(n - 1, ma))(_ :: _)
 
+  // Using `sequence` and the `List.fill` function of the standard library:
+  def replicateM[A](n: Int, ma: M[A]): M[List[A]] =
+    sequence(List.fill(n)(ma))
+
+  //  11.5 describe in your own words the general meaning of replicateM
+  /*
+  Also bei einer Liste gibt replicateM für z.B. List(2,3) die Liste aller möglichen Permutationen der Länge n zurück, die aus den Elementen 2 und 3 gebaut werden können
+
+For `Option`, it will generate either `Some` or `None` based on whether the input is `Some` or `None`. The `Some` case will contain a list of length `n` that repeats the element in the input `Option`.
+
+The general meaning of `replicateM` is described well by the implementation `sequence(List.fill(n)(ma))`. It repeats the `ma` monadic value `n` times and gathers the results in a single value, where the monad `F` determines how values are actually combined.
+
+   */
+
+  //  11.7
+  def compose[A, B, C](f: A => M[B], g: B => M[C]): A => M[C] =
+    a => flatMap(f(a))(g)
+
+  //  11.8
   // Implement in terms of `compose`:
-  def _flatMap[A, B](ma: M[A])(f: A => M[B]): M[B] = ???
+  def _flatMap[A, B](ma: M[A])(f: A => M[B]): M[B] =
+    compose((_: Unit) => ma, f)(())
 
+  //  11.9 gute aufgabe! wenn sie noch nicht in der VL drankommt
+  /*
+  You want to show that these two are equivalent:
+
+flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
+compose(compose(f, g), h) == compose(f, compose(g, h))
+
+Rewrite one in terms of the other.
+   */
+
+  //  Antwort:
+  /*
+  compose(compose(f,g),h) == compose(f, compose(g,h))
+  -> die äußeren compose aufrufe mit flatMap ersetzen
+    a => flatMap(compose(f,g)(a))(h) == a => flatMap(f(a))(compose(g,h))
+
+  -> die inneren compose Aufrufe mit flatMap ersetzen
+    a => flatMap((b => flatMap(f(b))(g))(a))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
+
+  -> die linke seite vereinfachen. Wie?
+  achja, (b => flatMap(f(b))(g))(a)
+  denn: das a, das an die anonyme funktion übergeben wird ersetzt ja das anonyme b
+    a => flatMap(flatMap(f(a))(g))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
+
+  -> Ersetze f(a) mit x
+  flatMap(flatMap(x)(g))(h) == flatMap(x)(b => flatMap(g(b))(h))
+
+  das sieht genauso aus wie
+  flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
+
+  Nur mit anderen Namen
+
+
+  */
   def join[A](mma: M[M[A]]): M[A] = flatMap(mma)(ma => ma)
 
   // Implement in terms of `join`:
@@ -119,12 +174,11 @@ object Monad {
   }
 
   def main(args: Array[String]): Unit = {
-    val l = List(Some(2), Some(3))
-    val test = optionMonad.sequence_flatMap(l)
-    println(test)
+    val l = List(2, 3)
 
-    val test2 = optionMonad.sequence(l)
-    println(test2)
+    val t = listMonad.replicateM(3, l)
+    println(t)
+
 
   }
 

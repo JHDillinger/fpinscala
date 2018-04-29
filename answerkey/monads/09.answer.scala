@@ -1,3 +1,4 @@
+/*
 Let's rewrite the following in terms of `flatMap`:
 
 compose(compose(f, g), h) == compose(f, compose(g, h))
@@ -18,4 +19,4 @@ This now looks exactly like the monad law stated in terms of `flatMap`, just wit
 
 flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
 
-Q.E.D.
+Q.E.D.*/

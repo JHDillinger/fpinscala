@@ -55,11 +55,11 @@ sealed trait Stream[+A] {
   }
 
   //  um das ganze tailrecursive machen zu können muss ein final davor
-//  @annotation.tailrec
-//  final def drop(n: Int): Stream[A] = this match {
-//    case Cons(h, t) => if (n > 0) t().drop(n - 1) else this
-//    case _ => this
-//  }
+  @annotation.tailrec
+  final def drop(n: Int): Stream[A] = this match {
+    case Cons(h, t) => if (n > 0) t().drop(n - 1) else this
+    case _ => this
+  }
 
   // 5.3
   def takeWhile(p: A => Boolean): Stream[A] = this match {
