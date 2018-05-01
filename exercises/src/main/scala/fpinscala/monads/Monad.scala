@@ -6,7 +6,7 @@ import testing._
 import parallelism._
 import state._
 import parallelism.Par._
-import language.higherKinds
+//import language.higherKinds
 
 
 trait Functor[F[_]] {
@@ -99,44 +99,16 @@ The general meaning of `replicateM` is described well by the implementation `seq
   def _flatMap[A, B](ma: M[A])(f: A => M[B]): M[B] =
     compose((_: Unit) => ma, f)(())
 
-  //  11.9 gute aufgabe! wenn sie noch nicht in der VL drankommt
-  /*
-  You want to show that these two are equivalent:
 
-flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
-compose(compose(f, g), h) == compose(f, compose(g, h))
-
-Rewrite one in terms of the other.
-   */
-
-  //  Antwort:
-  /*
-  compose(compose(f,g),h) == compose(f, compose(g,h))
-  -> die äußeren compose aufrufe mit flatMap ersetzen
-    a => flatMap(compose(f,g)(a))(h) == a => flatMap(f(a))(compose(g,h))
-
-  -> die inneren compose Aufrufe mit flatMap ersetzen
-    a => flatMap((b => flatMap(f(b))(g))(a))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
-
-  -> die linke seite vereinfachen. Wie?
-  achja, (b => flatMap(f(b))(g))(a)
-  denn: das a, das an die anonyme funktion übergeben wird ersetzt ja das anonyme b
-    a => flatMap(flatMap(f(a))(g))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
-
-  -> Ersetze f(a) mit x
-  flatMap(flatMap(x)(g))(h) == flatMap(x)(b => flatMap(g(b))(h))
-
-  das sieht genauso aus wie
-  flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
-
-  Nur mit anderen Namen
-
-
-  */
+  //  11.13 Was genau macht join?
   def join[A](mma: M[M[A]]): M[A] = flatMap(mma)(ma => ma)
 
   // Implement in terms of `join`:
-  def __flatMap[A, B](ma: M[A])(f: A => M[B]): M[B] = ???
+  def __flatMap[A, B](ma: M[A])(f: A => M[B]): M[B] =
+    join(map(ma)(f))
+
+  def __compose[A, B, C](f: A => M[B], g: B => M[C]): A => M[C] =
+    a => join(map(f(a))(g))
 }
 
 case class Reader[R, A](run: R => A)
@@ -178,22 +150,24 @@ object Monad {
 
     val t = listMonad.replicateM(3, l)
     println(t)
-
-
   }
 
   //  11.2 Hard: state monad
   def stateMonad[S] = ???
 
-  //  val idMonad: Monad[Id] = ???
+  val idMonad: Monad[Id] = new Monad[Id] {
+    override def unit[A](a: => A): Id[A] = Id(a)
+
+    override def flatMap[A, B](ma: Id[A])(f: A => Id[B]): Id[B] = ma.flatMap(f)
+  }
 
   def readerMonad[R] = ???
 }
 
 case class Id[A](value: A) {
-  def map[B](f: A => B): Id[B] = ???
+  def map[B](f: A => B): Id[B] = Id(f(value))
 
-  def flatMap[B](f: A => Id[B]): Id[B] = ???
+  def flatMap[B](f: A => Id[B]): Id[B] = f(value)
 }
 
 object Reader {

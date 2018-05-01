@@ -83,14 +83,11 @@ object Option {
             berechne den mean einer Seq
             diese Seq entsteht durch mappen der funktion math.pow(x-m,2) über die geg. Liste xs
             der mean dieser Seq ist dann die variance*/
-    mean(xs) flatMap (m => {
+    mean(xs).flatMap(m => {
       mean(xs.map(x => math.pow(x - m, 2)))
     })
   }
 
-  //  4.3
-  def map2[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
-    a flatMap (aa => b map (bb => f(aa, bb)))
 
   /*  Das ist die offizielle lösung, aber muss das denn so kompliziert sein?
       ah, ja vermutlich schon, weil ja f auch problematisch sein kann, oder?
@@ -113,17 +110,11 @@ object Option {
   //    case (Some(x), Some(y)) => Some(f(x,y))
   //  }
 
-  def map2for[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
-    for {
-      aa <- a
-      bb <- b
-    } yield f(aa, bb)
-
   //  4.4
   def sequence[A](a: List[Option[A]]): Option[List[A]] =
     a match {
       case Nil => Some(Nil)
-      case h :: t => h flatMap (hh => sequence(t) map (hh :: _))
+      case h :: t => h.flatMap(hh => sequence(t).map(hh :: _))
     }
 
   /*
@@ -146,8 +137,8 @@ object Option {
   *
   */
 
-  def sequence_1[A](a: List[Option[A]]): Option[List[A]] =
-    a.foldRight[Option[List[A]]](Some(Nil))((x, y) => map2(x, y)(_ :: _))
+  def sequenceViaFoldRight[A](a: List[Option[A]]): Option[List[A]] =
+    a.foldRight[Option[List[A]]](Some(Nil))((x, y) => x.map2(y)(_ :: _))
 
   //  Das ist das gleiche wie oben, nur dass es mit den for-comprehensions ist
   def sequence_lecture[A](as: List[Option[A]]): Option[List[A]] =
@@ -173,22 +164,34 @@ object Option {
   def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = {
     a match {
       case Nil => Some(Nil)
-      case h :: t => map2(f(h), traverse(t)(f))(_ :: _)
+      case h :: t => f(h).map2(traverse(t)(f))(_ :: _)
     }
   }
 
   //  foldright:
-  def traverse_1[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
-    a.foldRight[Option[List[B]]](Some(Nil))((h, t) => map2(f(h), t)(_ :: _))
+  def traverseViaFoldRight[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
+    a.foldRight[Option[List[B]]](Some(Nil))((h, t) => f(h).map2(t)(_ :: _))
 
   // Sequence via traverse ist einfach nur traverse mit der identitätsfunktion
   def sequenceViaTraverse[A](a: List[Option[A]]): Option[List[A]] =
     traverse(a)(x => x)
 
   def main(args: Array[String]): Unit = {
-    val t = List(Some(2), Some(3))
-    val test = sequence_lecture(t)
-    print(test)
+    //    val l = List(1.0, 2.0, 3.0)
+
+
+    //    val test = sequence(t)
+    //    val test = variance(l)
+
+    val list = List(Some(3), None)
+
+
+
+
+    //    val test = Some(2).map2(Some(3))(_+_)
+    //    val test = 2 :: List(1,2)
+//    print(test)
+
 
   }
 }

@@ -1,0 +1,81 @@
+//  11.9 gute aufgabe! wenn sie noch nicht in der VL drankommt
+/*
+You want to show that these two are equivalent:
+
+flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
+compose(compose(f, g), h) == compose(f, compose(g, h))
+
+Rewrite one in terms of the other.
+ */
+
+//  Antwort:
+/*
+compose(compose(f,g),h) == compose(f, compose(g,h))
+-> die äußeren compose aufrufe mit flatMap ersetzen
+  a => flatMap(compose(f,g)(a))(h) == a => flatMap(f(a))(compose(g,h))
+
+-> die inneren compose Aufrufe mit flatMap ersetzen
+  a => flatMap((b => flatMap(f(b))(g))(a))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
+
+-> die linke seite vereinfachen. Wie?
+achja, (b => flatMap(f(b))(g))(a)
+denn: das a, das an die anonyme funktion übergeben wird ersetzt ja das anonyme b
+  a => flatMap(flatMap(f(a))(g))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
+
+-> Ersetze f(a) mit x
+flatMap(flatMap(x)(g))(h) == flatMap(x)(b => flatMap(g(b))(h))
+
+das sieht genauso aus wie
+flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
+
+Nur mit anderen Namen
+
+
+*/
+
+//11.10
+/*
+Identity Laws:
+compose(f, unit) == f
+compose(unit, f) == f
+
+flatMap(x)(unit) == x
+flatMap(unit(y))(f) == f(y)*/
+
+/*
+Right Identity:
+compose(f, unit)(v) == f(v)
+(a => flatMap(f(a))(unit))(v) == f(v)
+  -> das übergebene v ersetzt ja das a
+flatMap(f(v))(unit) == f(v)
+  -> ersetze f(v) durch x
+flatMap(x)(unit) == x
+
+Left Identity
+compose(unit, f)(y) == f(y)
+(a => flatMap(unit(a))(f))(y) == f(y)
+flatMap(unit(y))(f) == f(y)
+
+Und schon sieht das aus wie oben
+
+ */
+
+//11.11
+/* for option monad
+
+left identity:
+flatMap(None)(Some(_)) == None
+
+flatMap(Some(v))(Some(_)) == Some(v)
+-> Definition von "flatMap" ersetzen
+Some(v) == Some(v)
+
+Right Identity
+flatMap(Some(None))(f) == f(None)
+f(None) == f(None)
+
+flatMap(Some(Some(v)))(f) == f(Some(v))
+f(Some(v)) == f(Some(v))
+*/
+
+//11.14
