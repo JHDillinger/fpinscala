@@ -153,7 +153,12 @@ object Monad {
   }
 
   //  11.2 Hard: state monad
-  def stateMonad[S] = ???
+  //  Warum ist das aufgabe 11.2? das greift doch massiv vor?
+  def stateMonad[S] = new Monad[({type f[x] = State[S, x]})#f] {
+    def unit[A](a: => A): State[S, A] = State(s => (a, s))
+
+    def flatMap[A, B](st: State[S, A])(f: A => State[S, B]): State[S, B] = st.flatMap(f)
+  }
 
   val idMonad: Monad[Id] = new Monad[Id] {
     override def unit[A](a: => A): Id[A] = Id(a)
@@ -161,7 +166,7 @@ object Monad {
     override def flatMap[A, B](ma: Id[A])(f: A => Id[B]): Id[B] = ma.flatMap(f)
   }
 
-  def readerMonad[R] = ???
+  //  def readerMonad[R] = ???
 }
 
 case class Id[A](value: A) {
@@ -172,9 +177,9 @@ case class Id[A](value: A) {
 
 object Reader {
   def readerMonad[R] = new Monad[({type f[x] = Reader[R, x]})#f] {
-    def unit[A](a: => A): Reader[R, A] = ???
+    def unit[A](a: => A): Reader[R, A] = Reader(_ => a)
 
-    override def flatMap[A, B](st: Reader[R, A])(f: A => Reader[R, B]): Reader[R, B] = ???
+    override def flatMap[A, B](st: Reader[R, A])(f: A => Reader[R, B]): Reader[R, B] = Reader(r => f(st.run(r)).run(r))
   }
 }
 
