@@ -1,7 +1,5 @@
 package fpinscala.state
 
-//Warum muss das hier sein?
-
 // 6.10
 case class State[S, +A](run: S => (A, S)) {
 
@@ -49,7 +47,19 @@ object State {
   def get[S]: State[S, S] = State(s => (s, s))
 
   def set[S](s: S): State[S, Unit] = State(_ => ((), s))
-}
 
+  val intProg: State[Int, Int] = for {
+    _ <- set[Int](3)
+    _ <- modify[Int](_ + 1)
+    _ <- modify[Int](_ * 3)
+    _ <- modify[Int](_ - 2)
+    result <- get
+  } yield result
+
+  def main(args: Array[String]): Unit = {
+    val t = intProg.run
+    println(t)
+  }
+}
 
 
