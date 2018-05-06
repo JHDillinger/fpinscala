@@ -49,6 +49,14 @@ object State {
   def set[S](s: S): State[S, Unit] = State(_ => ((), s))
 
   val intProg: State[Int, Int] = for {
+    //    _ <- get
+    _ <- modify[Int](_ + 1)
+    _ <- modify[Int](_ * 3)
+    _ <- modify[Int](_ - 2)
+    result <- get
+  } yield result
+
+  val intProg2: State[Int, Int] = for {
     _ <- set[Int](3)
     _ <- modify[Int](_ + 1)
     _ <- modify[Int](_ * 3)
@@ -56,9 +64,31 @@ object State {
     result <- get
   } yield result
 
+  val stringProg: State[String, String] =
+    for {
+      _ <- modify[String](_ ++ " World")
+      _ <- modify[String](_ ++ "Program!")
+      result <- get
+    } yield result
+
+  def stringProg2(str: List[String]): State[String, String] = for {
+    _ <- sequence(str.map(s => modify[String](_ ++ s)))
+    result <- get
+  } yield result
+
+
   def main(args: Array[String]): Unit = {
-    val t = intProg.run
+    val t = intProg2.run(3)._1
     println(t)
+    val t2 = intProg2.run(5)._1
+    println(t2)
+    val s = stringProg.run("Hello")._1
+    println(s)
+    val strings = List(" ", "World", " ", "Program", "!")
+    val test = stringProg2(strings).run("Hello")._1
+    println(test)
+
+
   }
 }
 

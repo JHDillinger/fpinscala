@@ -82,7 +82,8 @@ object RNG {
     @annotation.tailrec
     def loop(n: Int, xs: List[Int], r: RNG): (List[Int], RNG) = {
       if (n <= 0)
-        (xs, r) else {
+        (xs, r)
+      else {
         val (x, r) = rng.nextInt
         loop(n - 1, x :: xs, r)
       }
@@ -119,14 +120,16 @@ object RNG {
   }
 
   //  6.9 map and map2 via flatMap
-  def mapViaFlatMap[A,B](s: Rand[A])(f: A => B): Rand[B] =
+  def mapViaFlatMap[A, B](s: Rand[A])(f: A => B): Rand[B] =
     flatMap(s)(a => unit(f(a)))
 
-  def map2ViaFlatMap[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
+  def map2ViaFlatMap[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
     flatMap(ra)(a => map(rb)(b => f(a, b)))
 
   def main(args: Array[String]): Unit = {
     val rng = Simple(42)
     println(nonNegativeInt(rng))
+    val test = double(rng)
+    println(test)
   }
 }
