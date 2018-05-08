@@ -67,7 +67,7 @@ object State {
   val stringProg: State[String, String] =
     for {
       _ <- modify[String](_ ++ " World")
-      _ <- modify[String](_ ++ "Program!")
+      _ <- modify[String](_ ++ " Program!")
       result <- get
     } yield result
 
@@ -78,10 +78,6 @@ object State {
 
 
   def main(args: Array[String]): Unit = {
-    val t = intProg2.run(3)._1
-    println(t)
-    val t2 = intProg2.run(5)._1
-    println(t2)
     val s = stringProg.run("Hello")._1
     println(s)
     val strings = List(" ", "World", " ", "Program", "!")

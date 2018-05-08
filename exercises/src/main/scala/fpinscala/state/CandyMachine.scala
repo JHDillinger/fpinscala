@@ -2,7 +2,6 @@ package fpinscala.state
 
 import State._
 
-
 //  6.11 Candy machine
 
 sealed trait Input
@@ -35,7 +34,7 @@ object Candy {
 
 }
 
-object asdf {
+object Test {
 
   import Candy._
 
