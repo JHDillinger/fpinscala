@@ -100,6 +100,20 @@ object RNG {
       (f(a, b), r2)
     }
 
+
+  def _map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): RNG => (C, RNG) =
+    rng => {
+      val (a, r1) = ra(rng)
+      val (b, r2) = rb(r1)
+      (f(a, b), r2)
+    }
+
+  def __map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C)(rng: RNG): (C, RNG) = {
+    val (a, r1) = ra(rng)
+    val (b, r2) = rb(r1)
+    (f(a, b), r2)
+  }
+
   //  6.7
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
     fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_ :: _))
@@ -129,7 +143,12 @@ object RNG {
   def main(args: Array[String]): Unit = {
     val rng = Simple(42)
     println(nonNegativeInt(rng))
-    val test = double(rng)
+    //    val test = double(rng)
+    //    println(test)
+
+    val test = _map2(int, int)(_ + _)(rng)
     println(test)
+    val test2 = map2(int, int)(_ + _)(rng)
+    println(test2)
   }
 }

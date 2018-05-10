@@ -37,7 +37,6 @@ trait Applicative[F[_]] extends Functor[F] {
                          (f: (A, B, C, D) => E): F[E] =
     apply(apply(apply(apply(unit(f.curried))(fa))(fb))(fc))(fd)
 
-
   ////
 
 
@@ -52,7 +51,11 @@ trait Applicative[F[_]] extends Functor[F] {
   def replicateM[A](n: Int, fa: F[A]): F[List[A]] =
     sequence(List.fill(n)(fa))
 
-  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] =
+  // product oder factor? wurde sich wohl irgendwann im Buch umentschieden
+  //  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] =
+  //    map2(fa, fb)((_, _))
+
+  def factor[A, B](fa: F[A], fb: F[B]): F[(A, B)] =
     map2(fa, fb)((_, _))
 
   ////
@@ -60,16 +63,44 @@ trait Applicative[F[_]] extends Functor[F] {
   def traverse[A, B](as: List[A])(f: A => F[B]): F[List[B]] =
     as.foldRight(unit(List[B]()))((a, fbs) => map2(f(a), fbs)(_ :: _))
 
-  def factor[A, B](fa: F[A], fb: F[B]): F[(A, B)] = ???
 
-  def product[G[_]](G: Applicative[G]): Applicative[({type f[x] = (F[x], G[x])})#f] = ???
+  //  12.8
+  // ok, wie zur Hölle hätte man da draufkommen können?
+  // woher weiß ich, dass ich apply overriden muss?
+  def product[G[_]](G: Applicative[G]): Applicative[({type f[x] = (F[x], G[x])})#f] = {
+    val self = this
+    new Applicative[({type f[x] = (F[x], G[x])})#f] {
+      def unit[A](a: => A) = (self.unit(a), G.unit(a))
 
-  def compose[G[_]](G: Applicative[G]): Applicative[({type f[x] = F[G[x]]})#f] = ???
+      override def apply[A, B](fs: (F[A => B], G[A => B]))(p: (F[A], G[A])) = (self.apply(fs._1)(p._1), G.apply(fs._2)(p._2))
+    }
+  }
 
-  def sequenceMap[K, V](ofa: Map[K, F[V]]): F[Map[K, V]] = ???
+  ////
+
+  //  12.9 not even gonna try
+  //  und woher weiß ich hier, dass map2 überschrieben werden muss?
+  def compose[G[_]](G: Applicative[G]): Applicative[({type f[x] = F[G[x]]})#f] = {
+    val self = this
+    new Applicative[({type f[x] = F[G[x]]})#f] {
+      def unit[A](a: => A) = self.unit(G.unit(a))
+
+      override def map2[A, B, C](fga: F[G[A]], fgb: F[G[B]])(f: (A, B) => C) =
+        self.map2(fga, fgb)(G.map2(_, _)(f))
+    }
+  }
+
+  ////
+
+  //  12.12
+  def sequenceMap[K, V](ofa: Map[K, F[V]]): F[Map[K, V]] =
+    ofa.foldLeft(unit(Map.empty[K, V])) {
+      case (acc, (k, fv)) => map2(acc, fv)(
+        (m, v) => m + (k -> v))
+    }
+
+  ////
 }
-
-case class Tree[+A](head: A, tail: List[Tree[A]])
 
 
 sealed trait Validation[+E, +A]
@@ -92,7 +123,20 @@ object Applicative {
       a zip b map f.tupled
   }
 
-  def validationApplicative[E]: Applicative[({type f[x] = Validation[E, x]})#f] = ???
+  //  12.6
+  def validationApplicative[E]: Applicative[({type f[x] = Validation[E, x]})#f] = new Applicative[({type f[x] = Validation[E, x]})#f] {
+    def unit[A](a: => A): Validation[E, A] = Success(a)
+
+    override def map2[A, B, C](va: Validation[E, A], vb: Validation[E, B])(f: (A, B) => C): Validation[E, C] = (va, vb) match {
+      case (Success(a), Success(b)) => Success(f(a, b))
+      case (Failure(a, ta), Failure(b, tb)) => Failure(a, ta ++ Vector(b) ++ tb)
+      case (_, e@Failure(_, _)) => e
+      case (e@Failure(_, _), _) => e
+    }
+
+  }
+
+  ////
 
   type Const[A, B] = A
 

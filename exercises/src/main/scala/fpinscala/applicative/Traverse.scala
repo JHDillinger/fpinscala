@@ -1,6 +1,7 @@
 package fpinscala
 package applicative
 
+
 import monads.Functor
 import state._
 //import State._
@@ -9,14 +10,26 @@ import monoids._
 import language.higherKinds
 import language.implicitConversions
 
+
 trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
   def traverse[G[_] : Applicative, A, B](fa: F[A])(f: A => G[B]): G[F[B]] =
-    sequence(map(fa)(f))
+    sequence[G, B](map(fa)(f))
 
-  def sequence[G[_] : Applicative, A](fma: F[G[A]]): G[F[A]] =
-    traverse(fma)(ma => ma)
+  def sequence[G[_] : Applicative, A](fga: F[G[A]]): G[F[A]] =
+    traverse(fga)(ga => ga)
 
-  def map[A, B](fa: F[A])(f: A => B): F[B] = ???
+  //  12.14
+  type ID[A] = A
+
+  val idMonad = new Monad[ID] {
+    def unit[A](a: => A) = a
+
+    override def flatMap[A, B](a: A)(f: A => B): B = f(a)
+  }
+
+  def map[A, B](fa: F[A])(f: A => B): F[B] = traverse[ID, A, B](fa)(f)(idMonad)
+
+  ////
 
   import Applicative._
 
@@ -40,20 +53,72 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
   def zipWithIndex[A](fa: F[A]): F[(A, Int)] =
     mapAccum(fa, 0)((a, s) => ((a, s), s + 1))._1
 
-  def reverse[A](fa: F[A]): F[A] = ???
+  //  12.16
+  def reverse[A](fa: F[A]): F[A] =
+    mapAccum(fa, toList(fa).reverse)((_, as) => (as.head, as.tail))._1
 
-  override def foldLeft[A, B](fa: F[A])(z: B)(f: (B, A) => B): B = ???
+  ////
 
+  //  12.17
+  override def foldLeft[A, B](fa: F[A])(z: B)(f: (B, A) => B): B =
+    mapAccum(fa, z)((a, b) => ((), f(b, a)))._2
+
+  ////
+
+  //  12.18
   def fuse[G[_], H[_], A, B](fa: F[A])(f: A => G[B], g: A => H[B])
-                            (implicit G: Applicative[G], H: Applicative[H]): (G[F[B]], H[F[B]]) = ???
+                            (implicit G: Applicative[G], H: Applicative[H]): (G[F[B]], H[F[B]]) = traverse[({type f[x] = (G[x], H[x])})#f, A, B](fa)(a => (f(a), g(a)))(G.product(H))
 
-  def compose[G[_]](implicit G: Traverse[G]): Traverse[({type f[x] = F[G[x]]})#f] = ???
+  ////
+
+  //  12.19
+  def compose[G[_]](implicit G: Traverse[G]): Traverse[({type f[x] = F[G[x]]})#f] = {
+    val self = this
+
+    new Traverse[({type f[x] = F[G[x]]})#f] {
+      override def traverse[M[_] : Applicative, A, B](fa: F[G[A]])(f: A => M[B]) =
+        self.traverse(fa)((ga: G[A]) => G.traverse(ga)(f))
+    }
+  }
 }
 
+////
+
+case class Tree[+A](head: A, tail: List[Tree[A]])
+
+
 object Traverse {
-  val listTraverse = ???
+  //  12.13
+  val listTraverse = new Traverse[List] {
+    //    auto completed override:
+    //    override def traverse[G[_] : Applicative, A, B](fa: List[A])(f: A => G[B]): G[List[B]] = super.traverse(fa)(f)
 
-  val optionTraverse = ???
+    //    vs:
+    override def traverse[G[_], A, B](as: List[A])(f: A => G[B])(implicit G: Applicative[G]): G[List[B]] =
+      as.foldRight(G.unit(List[B]()))((a, fbs) => G.map2(f(a), fbs)(_ :: _))
+  }
 
-  val treeTraverse = ???
+  val optionTraverse = new Traverse[Option] {
+    override def traverse[G[_], A, B](oa: Option[A])(f: A => G[B])(implicit G: Applicative[G]): G[Option[B]] =
+      oa match {
+        case Some(a) => G.map(f(a))(Some(_))
+        case None => G.unit(None)
+      }
+  }
+
+  val treeTraverse = new Traverse[Tree] {
+    override def traverse[G[_], A, B](ta: Tree[A])(f: A => G[B])(implicit G: Applicative[G]): G[Tree[B]] =
+      G.map2(f(ta.head), listTraverse.traverse(ta.tail)(a => traverse(a)(f)))(Tree(_, _))
+  }
+
+  ////
+}
+
+object StateUtil {
+
+  def get[S]: State[S, S] =
+    State(s => (s, s))
+
+  def set[S](s: S): State[S, Unit] =
+    State(_ => ((), s))
 }
