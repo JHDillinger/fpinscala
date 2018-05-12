@@ -59,7 +59,7 @@ object Monoid {
   }
 
   //  deshalb benötigt man hier das duale Objekt des Monoids
-  // (hier vllt ein Ausflug in die Mathematik?)
+  // (hier vllt ein Ausf Diese sind oft lug in die Mathematik?)
   // das Duale erlangt man indem man die Parameter für op() einfach flipt
   def dual[A](m: Monoid[A]): Monoid[A] = new Monoid[A] {
     def op(x: A, y: A): A = m.op(y, x)
@@ -119,12 +119,12 @@ object Monoid {
     foldMap(as, dual(endoMonoid[B]))(a => b => f(b, a))(z)
 
   //  10.7
-  def foldMapV[A, B](as: IndexedSeq[A], m: Monoid[B])(f: A => B): B =
+  def foldMapBalanced[A, B](as: IndexedSeq[A], m: Monoid[B])(f: A => B): B =
     if (as.isEmpty) m.zero
     else if (as.length == 1) f(as(0))
     else {
       val (l, r) = as.splitAt(as.length / 2)
-      m.op(foldMapV(l, m)(f), foldMapV(r, m)(f))
+      m.op(foldMapBalanced(l, m)(f), foldMapBalanced(r, m)(f))
     }
 
   //  10.8 nicht wirklich relevant weil Part 2 fehlt (parallel usw)
@@ -133,21 +133,15 @@ object Monoid {
   def ordered(ints: IndexedSeq[Int]): Boolean =
     ???
 
-  sealed trait WC
-
-  case class Stub(chars: String) extends WC
-
-  case class Part(lStub: String, words: Int, rStub: String) extends WC
-
   def par[A](m: Monoid[A]): Monoid[Par[A]] =
     ???
 
   def parFoldMap[A, B](v: IndexedSeq[A], m: Monoid[B])(f: A => B): Par[B] =
     ???
 
-  val wcMonoid: Monoid[WC] = ???
+  //  val wcMonoid: Monoid[WC] = ???
 
-  def count(s: String): Int = ???
+  //  def count(s: String): Int = ???
 
   //  10.16
   def productMonoid[A, B](A: Monoid[A], B: Monoid[B]): Monoid[(A, B)] =
@@ -166,6 +160,12 @@ object Monoid {
       def zero: A => B = _ => B.zero
     }
 
+  def main(args: Array[String]): Unit = {
+    val test = functionMonoid(intAddition)
+    val a =test.zero
+    val b= test.op(_ =>1,_=> 2)
+  }
+
   def mapMergeMonoid[K, V](V: Monoid[V]): Monoid[Map[K, V]] =
     new Monoid[Map[K, V]] {
       def zero = Map[K, V]()
@@ -182,7 +182,7 @@ object Monoid {
 
   //  10.18
   def bag[A](as: IndexedSeq[A]): Map[A, Int] =
-    foldMapV(as, mapMergeMonoid[A, Int](intAddition))((a: A) => Map(a -> 1))
+    foldMapBalanced(as, mapMergeMonoid[A, Int](intAddition))((a: A) => Map(a -> 1))
 }
 
 // 10.12 komplett alles bis Tree
@@ -246,7 +246,7 @@ object IndexedSeqFoldable extends Foldable[IndexedSeq] {
     as.foldLeft(z)(f)
 
   override def foldMap[A, B](as: IndexedSeq[A])(f: A => B)(mb: Monoid[B]): B =
-    foldMapV(as, mb)(f)
+    foldMapBalanced(as, mb)(f)
 
 }
 
