@@ -30,6 +30,17 @@ object RNG {
       (f(a), rng2)
     }
 
+  def _map[A, B](s: Rand[A])(f: A => B): RNG => (B, RNG) =
+    rng => {
+      val (a, rng2) = s(rng)
+      (f(a), rng2)
+    }
+
+  def __map[A, B](s: Rand[A])(f: A => B)(rng: RNG): (B, RNG) = {
+    val (a, rng2) = s(rng)
+    (f(a), rng2)
+  }
+
   //  6.1
   // meine Lösung. glaub das mit dem rekursiven neuen aufruf
   //  ist nicht gerade das, was man haben will wenn man funktional programmiert. bzgl referential transparency und so?
@@ -146,9 +157,12 @@ object RNG {
     //    val test = double(rng)
     //    println(test)
 
-    val test = _map2(int, int)(_ + _)(rng)
-    println(test)
-    val test2 = map2(int, int)(_ + _)(rng)
-    println(test2)
+    val a = map(int)(_ * 2)(rng)
+    val b = _map(int)(_ * 2)(rng)
+    val c = __map(int)(_ * 2)(rng)
+    println(a)
+    println(b)
+    println(c)
+    println(a == b && b == c)
   }
 }

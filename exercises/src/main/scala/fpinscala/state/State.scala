@@ -71,6 +71,14 @@ object State {
       result <- get
     } yield result
 
+  val stringProg4: State[String, String] =
+    modify[String](_ ++ "world").flatMap(
+      _ => modify[String](_ ++ "Program!")).flatMap(_ => get)
+
+  def stringProg3(start: String) = State[String, String](_ => (start,start)).flatMap(
+    _ => modify[String](_ ++ " World").flatMap(
+      _ => modify[String](_ ++ " Program!")).map(_ => get)).run("x")
+
   def stringProg2(str: List[String]): State[String, String] = for {
     _ <- sequence(str.map(s => modify[String](_ ++ s)))
     result <- get
@@ -84,6 +92,12 @@ object State {
     val test = stringProg2(strings).run("Hello")._1
     println(test)
 
+    val st = State[Int, Int](x => (2, x))
+    val g = st.run(5)
+    println(g)
+
+    println(stringProg3("test"))
+    println(stringProg4)
 
   }
 }

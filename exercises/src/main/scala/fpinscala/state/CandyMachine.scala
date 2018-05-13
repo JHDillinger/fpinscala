@@ -26,9 +26,10 @@ object Candy {
   def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] =
     for {
       //      List[Input] wird mit Map zu einer List[State[S,A]
-      //      _ <- sequence(inputs.map(modify[Machine] _ compose update))
-      //      _ <- sequence(inputs.map((modify[Machine] _).compose(update)))
-      _ <- sequence(inputs.map(m => modify[Machine](update(m))))
+      //            _ <- sequence(inputs.map(modify[Machine] _ compose update))
+      //            _ <- sequence(inputs.map((modify[Machine] _).compose(update)))
+      _ <- sequence(inputs.map((update _).andThen(modify[Machine])))
+      //      _ <- sequence(inputs.map(m => modify[Machine](update(m))))
       s <- get
     } yield (s.coins, s.candies)
 
