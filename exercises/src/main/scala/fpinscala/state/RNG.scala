@@ -157,9 +157,9 @@ object RNG {
     //    val test = double(rng)
     //    println(test)
 
-    val a = map(int)(_ * 2)(rng)
-    val b = _map(int)(_ * 2)(rng)
-    val c = __map(int)(_ * 2)(rng)
+    val a = map(int)(_ * 2)
+    val b = _map(int)(_ * 2)
+    val c:Rand[Int] = __map(int)(_ * 2)
     println(a)
     println(b)
     println(c)

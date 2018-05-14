@@ -46,6 +46,9 @@ object State {
 
   def get[S]: State[S, S] = State(s => (s, s))
 
+  val getString: State[String, String] = State(s => (s, s))
+  // String > (String, String)
+
   def set[S](s: S): State[S, Unit] = State(_ => ((), s))
 
   val intProg: State[Int, Int] = for {
@@ -75,9 +78,9 @@ object State {
     modify[String](_ ++ "world").flatMap(
       _ => modify[String](_ ++ "Program!")).flatMap(_ => get)
 
-  def stringProg3(start: String) = State[String, String](_ => (start,start)).flatMap(
+  def stringProg3(start: String) = State[String, String](_ => (start, start)).flatMap(
     _ => modify[String](_ ++ " World").flatMap(
-      _ => modify[String](_ ++ " Program!")).map(_ => get)).run("x")
+      _ => modify[String](_ ++ " Program!")).map(_ => get)).run(start)
 
   def stringProg2(str: List[String]): State[String, String] = for {
     _ <- sequence(str.map(s => modify[String](_ ++ s)))
@@ -97,7 +100,38 @@ object State {
     println(g)
 
     println(stringProg3("test"))
-    println(stringProg4)
+    println(stringProg4.run("test"))
+    println(stringProg.run("test"))
+
+
+    val getter = get[String] // State(s => (s, s))
+
+
+    // Sinnfreies Programm, das den eingehenden String (state) zu Großbuchstaben modifiziert
+    // Anschließend mit get den aktuellen State nimmt
+    // Und mit set den State den String dupliziert
+    val runC = for {
+      _ <- modify[String](_.toUpperCase)
+      s <- get
+      r <- set(s ++ s)
+    } yield r
+    println(runC.run("bla")) // ((), BLABLA)
+
+    val runFM =
+      modify[String](_.toUpperCase)
+        .flatMap(_ => get
+          .flatMap(s => set(s ++ s)))
+    println(runFM.run("bla")) // ((), BLABLA)
+
+
+    val run = (state0: String) => {
+      val (wert1, state1) = ((s: String) => ((), s.toUpperCase)) (state0) // modify
+      val (wert2, state2) = ((s: String) => (s, s)) (state1) // get
+      val (wert3, state3) = ((s: String) => ((), wert2 ++ wert2)) (state2) // set
+      (wert3, state3)
+    }
+    println(run("bla")) // ((), BLABLA)
+
 
   }
 }
