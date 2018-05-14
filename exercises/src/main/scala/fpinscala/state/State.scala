@@ -89,11 +89,9 @@ object State {
 
 
   def main(args: Array[String]): Unit = {
-    val s = stringProg.run("Hello")._1
-    println(s)
-    val strings = List(" ", "World", " ", "Program", "!")
-    val test = stringProg2(strings).run("Hello")._1
-    println(test)
+    println(stringProg.run("Hello")._1) //Hello World Program
+    val strings = List(" World", " Program") //Hello World Program
+    println(stringProg2(strings).run("Hello")._1)
 
     val st = State[Int, Int](x => (2, x))
     val g = st.run(5)
