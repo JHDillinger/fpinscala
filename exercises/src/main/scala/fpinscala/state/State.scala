@@ -69,21 +69,21 @@ object State {
 
   val stringProg: State[String, String] =
     for {
-      _ <- modify[String](_ ++ " World")
-      _ <- modify[String](_ ++ " Program!")
+      _ <- modify[String](_ + " World")
+      _ <- modify[String](_ + " Program!")
       result <- get
     } yield result
 
   val stringProg4: State[String, String] =
-    modify[String](_ ++ "world").flatMap(
-      _ => modify[String](_ ++ "Program!")).flatMap(_ => get)
+    modify[String](_ + "world").flatMap(
+      _ => modify[String](_ + "Program!")).flatMap(_ => get)
 
   def stringProg3(start: String) = State[String, String](_ => (start, start)).flatMap(
-    _ => modify[String](_ ++ " World").flatMap(
-      _ => modify[String](_ ++ " Program!")).map(_ => get)).run(start)
+    _ => modify[String](_ + " World").flatMap(
+      _ => modify[String](_ + " Program!")).map(_ => get)).run(start)
 
   def stringProg2(str: List[String]): State[String, String] = for {
-    _ <- sequence(str.map(s => modify[String](_ ++ s)))
+    _ <- sequence(str.map(s => modify[String](_ + s)))
     result <- get
   } yield result
 
