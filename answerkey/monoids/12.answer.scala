@@ -10,6 +10,9 @@ trait Foldable[F[_]] {
 
   def concatenate[A](as: F[A])(m: Monoid[A]): A =
     foldLeft(as)(m.zero)(m.op)
+
+  def toList[A](as: F[A]): List[A] =
+    foldRight(as)(List[A]())(_ :: _)
 }
 
 object ListFoldable extends Foldable[List] {

@@ -34,25 +34,24 @@ das sieht genauso aus wie
 flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
 
 Nur mit anderen Namen
-
----------------------------------
-Zusammengefasst:
-1:	a => flatMap(compose(f,g)(a))(h) == a => flatMap(f(a))(compose(g,h))
-2:	a => flatMap((b => flatMap(f(b))(g))(a))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
-3:	  a => flatMap(flatMap(f(a))(g))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
-4:	flatMap(flatMap(x)(g))(h) == flatMap(x)(b => flatMap(g(b))(h))
-sieht fast so aus wie:
-flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
----------------------------------
-ALTERNATIV? (zuerst die inneren umformen und zwar mit der x.flatMap(f) syntax
-1:	compose(a => f(a).flatMap(g), h) == compose(f, b => g(b).flatMap(h))
-2:	a => f(a).flatMap(g).flatMap(h) == a => f(a).flatMap(b => g(b).flatMap(h))
-3:	x.flatMap(g).flatMap(h) == x.flatMap(b => g(b).flatMap(h))
-sieht fast so aus wie:
-x.flatMap(f).flatMap(g) == x.flatMap(a => f(b).flatMap(g))
---------------------------------
-
 */
+a => flatMap(compose(f)(g)(a))(h) == a => flatMap(f(a))(compose(g)(h))
+a => flatMap((b => flatMap(f(b))(g)) (a))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
+a => flatMap(flatMap(f(a))(g))(h) == a => flatMap(f(a))(b => flatMap(g(b))(h))
+flatMap(flatMap(x)(g))(h) == flatMap(x)(b => flatMap(g(b))(h))
+//sieht so aus wie:
+flatMap(flatMap(x)(f))(g) == flatMap(x)(a => flatMap(f(a))(g))
+//Abgesehen von den unterschiedlichen Variablennamen
+//---------------------------------
+// Alternativ, angenommen compose waere mit a => f(a).flatMap(g) definiert
+a => compose(f,g)(a).flatMap(h) == a => f(a).flatMap(compose(g,h))
+a => (b => f(b).flatMap(g))(a).flatMap(h) == a => f(a).flatMap(b => g(b).flatMap(h))
+a => f(a).flatMap(g).flatMap(h) == a => f(a).flatMap(b => g(b).flatMap(h))
+x.flatMap(g).flatMap(h) == x.flatMap(b => g(b).flatMap(h))
+// Und das sieht so aus wie:
+x.flatMap(f).flatMap(g) == x.flatMap(a => f(a).flatMap(g))
+//Allerdings steht die Definition von compose ja fest mit a => flatMap(f(a))(g) und beides zusammen geht nicht
+
 
 //11.10
 /*

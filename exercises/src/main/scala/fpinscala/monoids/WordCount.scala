@@ -21,16 +21,16 @@ object WC {
     }
   }
 
-  def count(s: String): Int = {
+  def count(str: String): Int = {
     def wc(c: Char): WC =
       if (c.isWhitespace)
         Part("", 0, "")
       else
         Stub(c.toString)
 
-    def unstub(s: String) = s.length.min(1)
+    def unstub(s: String): Int = s.length.min(1)
 
-    val m = Monoid.foldMapBalanced(s.toIndexedSeq, wcMonoid)(wc)
+    val m = Monoid.foldMapBalanced(str.toIndexedSeq, wcMonoid)(wc)
 
     m match {
       case Stub(s) => unstub(s)
@@ -39,10 +39,9 @@ object WC {
   }
 
   def main(args: Array[String]): Unit = {
-    val t = count("")
+    val t = count("asdf asdf")
     println(t)
 
-    val s = "das ist ein satz".toIndexedSeq
 
   }
 
