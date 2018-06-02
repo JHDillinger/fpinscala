@@ -67,15 +67,15 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
 
   //  12.18
   def fuse[G[_], H[_], A, B](fa: F[A])(f: A => G[B], g: A => H[B])
-                            (implicit G: Applicative[G], H: Applicative[H]): (G[F[B]], H[F[B]]) = traverse[({type f[x] = (G[x], H[x])})#f, A, B](fa)(a => (f(a), g(a)))(G.product(H))
+                            (implicit G: Applicative[G], H: Applicative[H]): (G[F[B]], H[F[B]]) = traverse[Lambda[x => (G[x], H[x])], A, B](fa)(a => (f(a), g(a)))(G.product(H))
 
   ////
 
   //  12.19
-  def compose[G[_]](implicit G: Traverse[G]): Traverse[({type f[x] = F[G[x]]})#f] = {
+  def compose[G[_]](implicit G: Traverse[G]): Traverse[Lambda[x => F[G[x]]]] = {
     val self = this
 
-    new Traverse[({type f[x] = F[G[x]]})#f] {
+    new Traverse[Lambda[x => F[G[x]]]] {
       override def traverse[M[_] : Applicative, A, B](fa: F[G[A]])(f: A => M[B]) =
         self.traverse(fa)((ga: G[A]) => G.traverse(ga)(f))
     }
@@ -90,10 +90,6 @@ case class Tree[+A](head: A, tail: List[Tree[A]])
 object Traverse {
   //  12.13
   val listTraverse = new Traverse[List] {
-    //    auto completed override:
-    //    override def traverse[G[_] : Applicative, A, B](fa: List[A])(f: A => G[B]): G[List[B]] = super.traverse(fa)(f)
-
-    //    vs:
     override def traverse[G[_], A, B](as: List[A])(f: A => G[B])(implicit G: Applicative[G]): G[List[B]] =
       as.foldRight(G.unit(List[B]()))((a, fbs) => G.map2(f(a), fbs)(_ :: _))
   }
