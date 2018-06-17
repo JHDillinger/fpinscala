@@ -40,8 +40,16 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
   def traverseS[S, A, B](fa: F[A])(f: A => State[S, B]): State[S, F[B]] =
     traverse[({type f[x] = State[S, x]})#f, A, B](fa)(f)(Monad.stateMonad)
 
+
+  implicit def stateMonad[S] = new Monad[State[S,+?]] {
+    def unit[A](a: => A): State[S, A] = State(s => (a, s))
+
+    override def flatMap[A, B](st: State[S, A])(f: A => State[S, B]): State[S, B] =
+      st.flatMap(f)
+  }
+
   def mapAccum[S, A, B](fa: F[A], s: S)(f: (A, S) => (B, S)): (F[B], S) =
-    traverseS(fa)((a: A) => for {
+    traverse[State[S, +?], A, B](fa)((a: A) => for {
       s1 <- get[S]
       (b, s2) = f(a, s1)
       _ <- set(s2)
@@ -108,6 +116,12 @@ object Traverse {
   }
 
   ////
+
+  def main(args: Array[String]): Unit = {
+    val test = listTraverse.reverse(List(1,2,3))
+    println(test)
+
+  }
 }
 
 //object StateUtil {

@@ -31,7 +31,7 @@ object Monad {
     }
   }
 
-  def stateMonad[S] = new Monad[({type f[x] = State[S, x]})#f] {
+  implicit def stateMonad[S] = new Monad[State[S,+?]] {
     def unit[A](a: => A): State[S, A] = State(s => (a, s))
 
     override def flatMap[A, B](st: State[S, A])(f: A => State[S, B]): State[S, B] =
